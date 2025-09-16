@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+dependencies: 
+  # call me old fashioned, but python>=3.13 seems scary
+  - python<=3.12
+  - pip
+  - pip: 
+    - esgpull 
+
