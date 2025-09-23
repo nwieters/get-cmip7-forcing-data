@@ -1,31 +1,16 @@
 #!/bin/bash
 # 
-# Get CMIP7 forcing data using esgpull
-# 
-# Reference doc: 
-# https://esgf.github.io/esgf-download/
+# Retrieve CMIP7 forcing data using esgpull 
 #
+# See README.md for instructions on how to install esgpull etc. 
 #
-# It goes without saying that you need to install esgpull first
-# 
-# mamba env create -f esgpull_env.yml -p ./.conda_esgpull 
-# mamba activate ./.conda_esgpull 
-# 
-# Then install esgpull on the machine
-# esgpull self install
-# 
-# by default, it wants to install in HOME, which is no bueno. 
-# I set
-# Install location (/home/sm_joakj/.esgpull): /nobackup/rossby27/proj/rossby/joint_exp/ecearth/ece-4-data-cmip7 
+# IMPORTANT: Currently, this only works with if esgpull is set to search an index node
+# To set this up: 
+# esgpull config api.index_node esgf-node.ornl.gov/esgf-1-5-bridge
+# See: https://github.com/ESGF/esgf-download/issues/101 
 #
-# Data will end up in install location /data  
+# Author: Joakim Kjellsson, September 2025
 #
-# I had some issues with the default node (IPSL), so I switched to DKRZ
-# esgpull config api.index_node esgf-data.dkrz.de 
-#
-# To get most recent data, see the CMIP7_VERSION_SOURCE_IDs on 
-# https://input4mips-cvs.readthedocs.io/en/latest/database-views/input4MIPs_delivery-summary.html
-# and use those CMIP7_VERSION_SOURCE_ID below
 
 # Set the one you want to 1, others to 0
 solar=1
@@ -43,8 +28,10 @@ CMIP7_VERSION_MIP_ERA="CMIP7"
 
 if [ "x${solar}" == "x1" ] ; then
 
-    # each data set, e.g. solar forcing, has a source ID
-    CMIP7_VERSION_SOURCE_ID="SOLARIS-HEPPA-CMIP-4-6"
+    # Note: Due to a bug in esgpull, the source_id must have quotation marks. 
+    # This means we must prevent bash from removing the "" from the string, hence the \"  
+    # The following works for me at least. 
+    CMIP7_VERSION_SOURCE_ID=\"SOLARIS-HEPPA-CMIP-4-6\"
 
     SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
