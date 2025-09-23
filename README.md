@@ -36,10 +36,11 @@ data will now end up in `/nobackup/rossby27/proj/rossby/joint_exp/ecearth/ece-4-
 
 ### Choosing ESGF node   
 
-I had some issues with the default node (IPSL), so I switched to DKRZ
+I had some issues with getting some data from some nodes. Best option seems to be DKRZ
 ```bash
 esgpull config api.index_node esgf-data.dkrz.de 
 ```
+It finds everything except ozone data...
 
 ## Usage
 
