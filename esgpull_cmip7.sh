@@ -13,7 +13,7 @@
 #
 
 # Set the one you want to 1, others to 0
-solar=1
+solar=0
 ghg_conc=0
 o3=0
 amip=0
@@ -59,26 +59,33 @@ fi
 #  
 if [ "x${ghg_conc}" == "x1" ] ; then 
 
-    CMIP7_VERSION_SOURCE_ID="CR-CMIP-1-0-0" 
+    CMIP7_VERSION_SOURCE_ID=\"CR-CMIP-1-0-0\" 
     
-    SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
-    
-    # list available data
-    search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
-    echo $search_cmd
-    $search_cmd
+    # we dont want it all, just some GHGs for now
+    for varid in cfc11eq cfc12 ch4 co2 n2o ; do 
 
-    # get GHG data
-    add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
-    echo $add_cmd
-    $add_cmd
+        CMIP7_VARIABLE_ID=$varid
 
-    # if search has been done before, then update the search in case of updated data
-    esgpull update -y --tag ${SEARCH_TAG}
+        SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}-${CMIP7_VARIABLE_ID}"
+
+        # list available data
+        search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
+        echo $search_cmd
+        $search_cmd
+
+        # get GHG data
+        add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
+        echo $add_cmd
+        $add_cmd
+
+        # if search has been done before, then update the search in case of updated data
+        esgpull update -y --tag ${SEARCH_TAG}
+
+        # download data
+        esgpull download --tag ${SEARCH_TAG}
     
-    # download data
-    esgpull download --tag ${SEARCH_TAG}
-    
+    done
+
 fi
 
 #
@@ -88,9 +95,9 @@ fi
 #
 if [ "x${o3}" == "x1" ] ; then 
 
-    export CMIP7_VERSION_SOURCE_ID="FZJ-CMIP-ozone-1-0" 
+    CMIP7_VERSION_SOURCE_ID=\"FZJ-CMIP-ozone-1-0\" 
 
-    export SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
+    SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
     search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
     echo $search_cmd 
@@ -112,7 +119,7 @@ fi
 if [ "x${amip}" == "x1" ] ; then
 
     CMIP7_VERSION_MIP_ERA="CMIP7"
-    CMIP7_VERSION_SOURCE_ID="PCMDI-AMIP-1-1-10" 
+    CMIP7_VERSION_SOURCE_ID=\"PCMDI-AMIP-1-1-10\" 
     SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
     search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
