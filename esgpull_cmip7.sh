@@ -17,6 +17,8 @@ solar=0
 ghg_conc=0
 o3=0
 amip=0
+simple_plumes=0
+strat_aerosols=0
 
 CMIP7_VERSION_PROJECT="input4MIPs"
 
@@ -136,3 +138,63 @@ if [ "x${amip}" == "x1" ] ; then
 
 fi 
 
+#
+# Simple plumes data
+#
+if [ "x${simple_plumes}" == "x1" ] ; then
+    
+    # not on ESGF yet. Get from zenodo. 
+    wget https://zenodo.org/records/15283189/files/SPv2.1_1850-2023_CMIP7.nc
+    
+    mkdir -vp macv2sp 
+    mv SPv2.1_1850-2023_CMIP7.nc macv2sp/.
+
+fi
+
+#
+# Stratospheric aerosols etc 
+#
+if [ "x${strat_aerosols}" == "x1" ] ; then
+
+    CMIP7_VERSION_SOURCE_ID=\"UOEXETER-CMIP-2-2-1\" 
+    SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
+
+    search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+    echo $search_cmd
+    $search_cmd
+
+    add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+    echo $add_cmd
+    $add_cmd
+
+    esgpull update -y --tag ${SEARCH_TAG}
+
+    esgpull download --tag ${SEARCH_TAG}
+
+fi
+
+#
+# Emissions etc 
+#
+if [ "x${emissions}" == "x1" ] ; then
+    
+    for source_id in CEDS-CMIP-2025-04-18 CEDS-CMIP-2025-04-18-supplemental ; do 
+
+        CMIP7_VERSION_SOURCE_ID=\"${source_id}\"
+        SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
+        
+    search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+    echo $search_cmd
+    $search_cmd
+
+    add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+    echo $add_cmd
+    $add_cmd
+
+    esgpull update -y --tag ${SEARCH_TAG}
+
+    esgpull download --tag ${SEARCH_TAG}
+
+done 
+
+fi
