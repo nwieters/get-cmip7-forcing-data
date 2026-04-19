@@ -15,9 +15,9 @@
 # Set the one you want to 1, others to 0
 solar=0
 ghg_conc=0
-o3=1
+o3=0
 amip=0
-simple_plumes=0
+simple_plumes=1
 strat_aerosols=0
 ndep=0
 pop_dens=0
@@ -35,25 +35,28 @@ if [ "x${solar}" == "x1" ] ; then
     # Note: Due to a bug in esgpull, the source_id must have quotation marks. 
     # This means we must prevent bash from removing the "" from the string, hence the \"  
     # The following works for me at least. 
-    CMIP7_VERSION_SOURCE_ID=\"SOLARIS-HEPPA-CMIP-4-6\"
+    for source_id in SOLARIS-HEPPA-CMIP-4-6 SOLARIS-HEPPA-ScenarioMIP-4-6 ; do 
+        CMIP7_VERSION_SOURCE_ID=\"${source_id}\"
 
-    SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
+        SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
-    # search and list data
-    search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
-    echo $search_cmd
-    $search_cmd
+        # search and list data
+        search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
+        echo $search_cmd
+        $search_cmd
 
-    # track data
-    add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
-    echo $add_cmd
-    $add_cmd
-
-    # if search has been done before, then update the search in case of updated data
-    esgpull update -y --tag ${SEARCH_TAG}
+        # track data
+        add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}" 
+        echo $add_cmd
+        $add_cmd
+        
+        # if search has been done before, then update the search in case of updated data
+        esgpull update -y --tag ${SEARCH_TAG}
     
-    # download data
-    esgpull download --tag ${SEARCH_TAG}
+        # download data
+        esgpull download --tag ${SEARCH_TAG}
+    
+    done
 
 fi
 
@@ -63,31 +66,40 @@ fi
 #  
 if [ "x${ghg_conc}" == "x1" ] ; then 
 
-    CMIP7_VERSION_SOURCE_ID=\"CR-CMIP-1-0-0\" 
+    for source_id in CR-CMIP-1-0-0 CR-vl-ext-1-1-0 CR-vl-1-1-0 \
+	                           CR-ml-ext-1-1-0 CR-ml-1-1-0 \
+				   CR-m-ext-1-1-0 CR-m-1-1-0 \
+				   CR-ln-ext-1-1-0 CR-ln-1-1-0 \
+				   CR-l-ext-1-1-0 CR-l-1-1-0 \
+				   CR-hl-ext-1-1-0 CR-hl-1-1-0 \
+				   CR-h-ext-1-1-0 CR-h-1-1-0 ; do
+        
+        CMIP7_VERSION_SOURCE_ID=${source_id} 
     
-    # we dont want it all, just some GHGs for now
-    for varid in cfc11eq cfc12 ch4 co2 n2o ; do 
+        # we dont want it all, just some GHGs for now
+        for varid in cfc11eq cfc12 ch4 co2 n2o ; do 
+        
+            CMIP7_VARIABLE_ID=$varid
+            
+            SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}-${CMIP7_VARIABLE_ID}"
 
-        CMIP7_VARIABLE_ID=$varid
+            # list available data
+            search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
+            echo $search_cmd
+            $search_cmd
 
-        SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}-${CMIP7_VARIABLE_ID}"
+            # get GHG data
+            add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
+            echo $add_cmd
+            $add_cmd
 
-        # list available data
-        search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
-        echo $search_cmd
-        $search_cmd
-
-        # get GHG data
-        add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID} variable_id:${CMIP7_VARIABLE_ID}" 
-        echo $add_cmd
-        $add_cmd
-
-        # if search has been done before, then update the search in case of updated data
-        esgpull update -y --tag ${SEARCH_TAG}
-
-        # download data
-        esgpull download --tag ${SEARCH_TAG}
+            # if search has been done before, then update the search in case of updated data
+            esgpull update -y --tag ${SEARCH_TAG}
+        
+            # download data
+            esgpull download --tag ${SEARCH_TAG}
     
+        done
     done
 
 fi
@@ -102,9 +114,9 @@ if [ "x${o3}" == "x1" ] ; then
     # current recommendation is to use v1.2 climatology file
     # for piControl but v2.0 files for historical 
     # so we need both     
-    for source_id in FZJ-CMIP-ozone-1-2 FZJ-CMIP-ozone-2-0 ; do 
+    for source_id in FZJ-CMIP-ozone-1-2 FZJ-CMIP-ozone-2-0 FZJ-CMIP-ozone-vl-1-0 FZJ-CMIP-ozone-h-1-0 ; do 
        
-        CMIP7_VERSION_SOURCE_ID=\"${source_id}\"
+        CMIP7_VERSION_SOURCE_ID=${source_id}
 
         SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
@@ -155,8 +167,12 @@ if [ "x${simple_plumes}" == "x1" ] ; then
     # not on ESGF yet. Get from zenodo. 
     wget https://zenodo.org/records/15283189/files/SPv2.1_1850-2023_CMIP7.nc
     
+    # scenario
+    wget https://zenodo.org/records/18713154/files/Simple_plumes_SPv2.1_CMIP7_h_scenario.nc
+    wget https://zenodo.org/records/18713154/files/Simple_plumes_SPv2.1_CMIP7_vl_scenario.nc
+
     mkdir -vp macv2sp 
-    mv SPv2.1_1850-2023_CMIP7.nc macv2sp/.
+    mv SPv2.1_1850-2023_CMIP7.nc Simple_plumes_SPv2.1_CMIP7*.nc macv2sp/.
 
 fi
 
@@ -164,22 +180,24 @@ fi
 # Stratospheric aerosols etc 
 #
 if [ "x${strat_aerosols}" == "x1" ] ; then
+   
+    for source_id in UOEXETER-CMIP-2-2-1 UOEXETER-ScenarioMIP-2-2-2 ; do
+    
+        CMIP7_VERSION_SOURCE_ID=${source_id} 
+        SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
 
-    CMIP7_VERSION_SOURCE_ID=\"UOEXETER-CMIP-2-2-1\" 
-    SEARCH_TAG="cmip7-${CMIP7_VERSION_SOURCE_ID}"
+        search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+        echo $search_cmd
+        $search_cmd
 
-    search_cmd="esgpull search project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
-    echo $search_cmd
-    $search_cmd
+        add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
+        echo $add_cmd
+        $add_cmd
 
-    add_cmd="esgpull add --tag ${SEARCH_TAG} --track project:${CMIP7_VERSION_PROJECT} mip_era:${CMIP7_VERSION_MIP_ERA} source_id:${CMIP7_VERSION_SOURCE_ID}"
-    echo $add_cmd
-    $add_cmd
+        esgpull update -y --tag ${SEARCH_TAG}
 
-    esgpull update -y --tag ${SEARCH_TAG}
-
-    esgpull download --tag ${SEARCH_TAG}
-
+        esgpull download --tag ${SEARCH_TAG}
+    done
 fi
 
 #
